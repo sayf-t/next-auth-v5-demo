@@ -21,6 +21,7 @@ export const { handlers, signIn, signOut, auth } = NextAuth({
         email: { label: "Email", type: "email" },
         password: { label: "Password", type: "password" },
       },
+      // @ts-ignore
       authorize: async(credentials) => {
         if (!credentials) {
           return null;
