@@ -32,7 +32,7 @@ export const CardWrapper = ({
     <CardContent>
     {children}
     </CardContent>
-    {showSocial && <CardFooter className="bg-red-300">
+    {showSocial && <CardFooter>
         <Social />
     </CardFooter>}
     <CardFooter>
