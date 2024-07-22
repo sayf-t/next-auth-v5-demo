@@ -25,9 +25,10 @@ export default function RootLayout({
     <html lang="en">
       <body className={inter.className}>
         <SessionProvider>
-          <NavBar />
+          <div className="h-full flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-400 to-sky-800">
+
           {children}
-          <Toaster />
+          </div>
         </SessionProvider>
       </body>
     </html>

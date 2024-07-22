@@ -1,21 +1,29 @@
 import prisma from "@/lib/prisma";
+import { Poppins } from "next/font/google";
+import { cn } from "@/lib/utils";
 import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import LoginButton from "@/components/auth/LoginButton";
+
+const font = Poppins({
+  subsets: ["latin"],
+  weight: ["600"]
+});
 
 export default async function Home() {
   const users = await prisma.user.findMany();
   return (
-    <main className="flex flex-col items-center gap-6 px-3 py-10">
-      <h1 className="text-center text-4xl font-bold">Next-Auth V5 Demo</h1>
-      <h2 className="text-center text-2xl font-semibold">Users</h2>
-      <ul className="list-inside list-disc">
-        {users.map((user) => (
-          <li key={user.id}>
-            <Link href={`/user/${user.id}`} className="hover:underline">
-              {user.name || `User ${user.id}`}
-            </Link>
-          </li>
-        ))}
-      </ul>
+    <main className="flex flex-col h-full items-center justify-center gap-6 px-3 py-10">
+      <h1 className={cn(
+        "text-center text-4xl font-bold",
+        font.className
+        )}>🔐 Next-Auth V5 Demo</h1>
+      <p>A simple authentication service</p>
+        <div>
+          <LoginButton >
+            <Button>Sign In</Button>
+          </LoginButton>
+        </div>
     </main>
   );
 }
