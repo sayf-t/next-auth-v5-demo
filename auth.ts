@@ -5,6 +5,7 @@ import { getUserById } from "@/data/user";
 import { Adapter } from "next-auth/adapters";
 import authConfig from "@/auth.config";
 import { db } from "@/lib/db";
+import { getTwoFactorConfirmationByUserId } from "@/data/two-factor-confirmation";
 
 export const {
   handlers: { GET, POST },
@@ -34,8 +35,27 @@ export const {
 
         // Prevent sign in without email verification
         if (!existingUser?.emailVerified) return false;
+        
+        if (existingUser?.isTwoFactorEnabled) {
+          const twoFactorConfirmation = await getTwoFactorConfirmationByUserId(existingUser.id);
+
+          console.log({ twoFactorConfirmation });
+
+          if (!twoFactorConfirmation) return false;
+
+          // Delete two factor confirmation for next sign in
+          const confirmation = await twoFactorConfirmation;
+
+          if (!confirmation) return false;
+
+          await db.twoFactorConfirmation.delete({
+            where: { id: confirmation.id }
+          });
+        }
+
+        return true;
       }
-      // TODO: Add 2FA check here
+      
 
       return true;
     },
