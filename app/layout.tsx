@@ -4,6 +4,7 @@ import "./globals.css";
 import { Toaster } from "@/components/ui/toaster";
 import { NavBar } from "@/components/NavBar";
 import { SessionProvider } from "next-auth/react";
+import { auth } from "@/auth";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,19 +17,17 @@ export const metadata: Metadata = {
     "Learn how to use Auth.js v5 in Next.js with custom roles, caching, and more!",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SessionProvider>
-          <div className="h-full flex items-center justify-center bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-400 to-sky-800">
-
+        <SessionProvider session={session}>
           {children}
-          </div>
         </SessionProvider>
       </body>
     </html>
