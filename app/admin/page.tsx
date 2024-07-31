@@ -15,13 +15,13 @@ export default async function Page() {
     redirect("/api/auth/signin?callbackUrl=/admin");
   }
 
-  if (user.role !== "admin") {
-    return (
-      <main className="mx-auto my-10">
-        <p className="text-center">You are not authorized to view this page.</p>
-      </main>
-    );
-  }
+  // if (user.role !== "admin") {
+  //   return (
+  //     <main className="mx-auto my-10">
+  //       <p className="text-center">You are not authorized to view this page.</p>
+  //     </main>
+  //   );
+  // }
 
   return (
     <main className="mx-auto my-10 space-y-3">
