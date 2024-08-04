@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { signOut } from "next-auth/react";
+import { signOut } from "@/auth";
 
 interface UserButtonProps {
   user: User;
@@ -43,19 +43,19 @@ export default function UserButton({ user }: UserButtonProps) {
               <span>Settings</span>
             </Link>
           </DropdownMenuItem>
-          { user.role === "admin" && 
+          {/* { user.role === "admin" && 
             <DropdownMenuItem asChild>
               <Link href="/admin">
                 <Lock className="mr-2 h-4 w-4" />
                 Admin
               </Link>
             </DropdownMenuItem>
-          }
+          } */}
         </DropdownMenuGroup>
         <DropdownMenuSeparator />
         <DropdownMenuItem asChild>
 
-            <button onClick={() => signOut({ callbackUrl: "/" })} className="flex w-full items-center">
+            <button onClick={() => signOut({ redirectTo: "/" })} className="flex w-full items-center">
               <LogOut className="mr-2 h-4 w-4" /> Sign Out
             </button>
         </DropdownMenuItem>

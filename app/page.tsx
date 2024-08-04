@@ -18,10 +18,13 @@ export default async function Home() {
         "text-center text-4xl font-bold",
         font.className
         )}>🔐 Next-Auth V5 Demo</h1>
-      <p>A simple authentication service</p>
-        <div>
-          <LoginButton >
-            <Button>Sign In</Button>
+      <p>Simple authentication service</p>
+        <div className="space-x-4">
+          <LoginButton asChild>
+            <Button variant={"default"} size={"lg"}>Sign In Page</Button>
+          </LoginButton>
+          <LoginButton mode="modal" asChild>
+            <Button variant={"outline"} size={"lg"}>Sign In Dialog</Button>
           </LoginButton>
         </div>
     </main>
