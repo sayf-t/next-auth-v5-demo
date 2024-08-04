@@ -1,54 +1,107 @@
-import NextAuth from "next-auth";
 import { PrismaAdapter } from "@auth/prisma-adapter";
-import prisma from "./lib/prisma";
-import Google from "next-auth/providers/google";
-import Github from "next-auth/providers/github";
-import CredentialsProvider from "next-auth/providers/credentials";
+import NextAuth from "next-auth";
+
+import { getUserById } from "@/data/user";
 import { Adapter } from "next-auth/adapters";
-import credentials from "next-auth/providers/credentials";
+import authConfig from "@/auth.config";
+import { db } from "@/lib/db";
+import { getTwoFactorConfirmationByUserId } from "@/data/two-factor-confirmation";
+import { getAccountByUserId } from "./data/account";
 
-export const { handlers, signIn, signOut, auth } = NextAuth({
-  theme: {
-    logo: "/logo.png",
+export const {
+  handlers: { GET, POST },
+  auth,
+  signIn,
+  signOut,
+  unstable_update: update,
+} = NextAuth({
+  pages: {
+    signIn: "/auth/login",
+    error: "/auth/error",
   },
-  adapter: PrismaAdapter(prisma) as Adapter,
-  providers: [
-    Google,
-    Github,
-    CredentialsProvider({
-      name: "Credentials",
-      credentials: {
-        email: { label: "Email", type: "email" },
-        password: { label: "Password", type: "password" },
-      },
-      // @ts-ignore
-      authorize: async(credentials) => {
-        if (!credentials) {
-          return null;
-        }
-
-        const user = { id: 1, name: 'John Smith', email: 'test@example.com' };
-
-        if (
-          credentials.email === 'test@example.com' &&
-          credentials.password === 'password'
-        ) {
-          return user;
-        } else {
-          return null;
-        }
-      }
-    }),
-  ],
-  trustHost: true,
+  events: {
+    async linkAccount({ user }) {
+      await db.user.update({
+        where: { id: user.id },
+        data: { emailVerified: new Date() },
+      })
+    }
+  },
   callbacks: {
-    session({ session, user }) {
-      session.user.role = user.role;
+    async signIn({ user, account }) {
+      //Allow OAuth without email verification
+      if (account?.provider !== "credentials") return true;
+
+      if (user?.id) {
+        const existingUser = await getUserById(user?.id);
+
+        // Prevent sign in without email verification
+        if (!existingUser?.emailVerified) return false;
+        
+        if (existingUser?.isTwoFactorEnabled) {
+          const twoFactorConfirmation = await getTwoFactorConfirmationByUserId(existingUser.id);
+
+          console.log({ twoFactorConfirmation });
+
+          if (!twoFactorConfirmation) return false;
+
+          // Delete two factor confirmation for next sign in
+          const confirmation = await twoFactorConfirmation;
+
+          if (!confirmation) return false;
+
+          await db.twoFactorConfirmation.delete({
+            where: { id: confirmation.id }
+          });
+        }
+
+        return true;
+      }
+      
+
+      return true;
+    },
+    async session({ session, token }) {
+      if (token.sub && session.user) {
+        session.user.id = token.sub;
+      }
+
+      if (token.role && session.user) {
+        session.user.role = token.role;
+      }
+
+      if (session.user) {
+        session.user.isTwoFactorEnabled = token.isTwoFactorEnabled as boolean;
+      }
+
+      if (session.user) {
+        session.user.name = token.name;
+        session.user.email = token.email as string;
+        session.user.isOAuth = token.isOAuth as boolean;
+      }
+
+
       return session;
     },
-  },
-});
+    async jwt({ token }) {
+      if (!token.sub) return token;
 
-function saltAndHashPassword(password: string) {
-  return password;
-}
+      const existingUser = await getUserById(token.sub);
+
+      if (!existingUser) return token;
+
+      const existingAccount = await getAccountByUserId(existingUser.id);
+
+      token.isOAuth = !!existingAccount;
+      token.name = existingUser.name;
+      token.email = existingUser.email;
+      token.role = existingUser.role;
+      token.isTwoFactorEnabled = existingUser.isTwoFactorEnabled;
+
+      return token;
+    },
+  },
+  adapter: PrismaAdapter(db) as Adapter,
+  session: { strategy: "jwt" },
+  ...authConfig,
+});

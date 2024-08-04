@@ -15,15 +15,22 @@ datasource db {
   directUrl = env("POSTGRES_URL_NON_POOLING") // uses a direct connection
 }
 
+enum UserRole {
+  USER
+  ADMIN
+}
+
 model User {
-  id            String    @id @default(cuid())
-  name          String?
-  email         String    @unique
-  emailVerified DateTime?
-  image         String?
-  role          String?
-  accounts      Account[]
-  sessions      Session[]
+  id                 String    @id @default(cuid())
+  name               String?
+  email              String    @unique
+  emailVerified      DateTime?
+  image              String?
+  password           String?
+  role               UserRole  @default(USER)
+  accounts           Account[]
+  isTwoFactorEnabled Boolean   @default(false)
+  twoFactorConfirmation TwoFactorConfirmation?
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -53,23 +60,35 @@ model Account {
   @@map("accounts")
 }
 
-model Session {
-  sessionToken String   @unique
-  userId       String
-  expires      DateTime
-  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+model VerificationToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
 
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  @@map("sessions")
+  @@unique([email, token])
 }
 
-model VerificationToken {
-  identifier String
-  token      String
-  expires    DateTime
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
 
-  @@id([identifier, token])
-  @@map("verification_tokens")
+  @@unique([email, token])
+}
+
+model TwoFactorToken {
+  id        String   @id @default(cuid())
+  email     String
+  token     String   @unique
+  expiresAt DateTime
+
+  @@unique([email, token])
+}
+
+model TwoFactorConfirmation {
+  id        String   @id @default(cuid())
+  userId    String @unique
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

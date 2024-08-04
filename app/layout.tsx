@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
-import { Toaster } from "@/components/ui/toaster";
-import { NavBar } from "@/components/NavBar";
+import { Toaster } from "@/components/ui/sonner";
 import { SessionProvider } from "next-auth/react";
+import { auth } from "@/auth";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -16,18 +16,18 @@ export const metadata: Metadata = {
     "Learn how to use Auth.js v5 in Next.js with custom roles, caching, and more!",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  const session = await auth();
   return (
     <html lang="en">
       <body className={inter.className}>
-        <SessionProvider>
-          <NavBar />
-          {children}
+        <SessionProvider session={session}>
           <Toaster />
+          {children}
         </SessionProvider>
       </body>
     </html>
