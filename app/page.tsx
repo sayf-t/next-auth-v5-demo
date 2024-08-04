@@ -1,7 +1,5 @@
-import prisma from "@/lib/prisma";
 import { Poppins } from "next/font/google";
 import { cn } from "@/lib/utils";
-import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import LoginButton from "@/components/auth/LoginButton";
 
@@ -11,9 +9,8 @@ const font = Poppins({
 });
 
 export default async function Home() {
-  const users = await prisma.user.findMany();
   return (
-    <main className="flex flex-col h-full items-center justify-center gap-6 px-3 py-10">
+    <main className="flex flex-col h-full items-center justify-center gap-6 px-3 py-10 w-full gap-y-10 bg-[radial-gradient(ellipse_at_top,_var(--tw-gradient-stops))] from-teal-400 to-sky-800">
       <h1 className={cn(
         "text-center text-4xl font-bold",
         font.className
